@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    testImplementation(kotlin("test"))
+    //testImplementation(kotlin("test"))
 
     // Ktor
     implementation("io.ktor:ktor-server-core:$ktor_version")
@@ -30,10 +30,24 @@ dependencies {
 
     // Ktor - Status Pages
     implementation("io.ktor:ktor-server-status-pages:$ktor_version")
+
+    // Unit Tests
+    testImplementation("io.ktor:ktor-server-tests-jvm:2.3.1")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")// <--- This is crucial
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.test {
     useJUnitPlatform()
+    testLogging {
+        events("passed", "skipped", "failed")
+    }
+}
+sourceSets {
+    test {
+        java.srcDirs("src/test/kotlin")
+    }
 }
 kotlin {
     jvmToolchain(17)

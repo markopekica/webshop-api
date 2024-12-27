@@ -4,37 +4,28 @@ import io.ktor.server.routing.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import webshop.models.Product
-import io.ktor.http.HttpStatusCode
+import io.ktor.server.plugins.*
+
+
+val products = listOf(
+    Product(1, "Laptop", 533.0),
+    Product(2, "Headphones", 60.0),
+    Product(3, "Lunch", 15.0)
+)
 
 fun Route.productRoutes() {
-    get("products") {
-        val products = listOf(
-            Product(1, "Laptop", 533.0),
-            Product(2, "Headphones", 60.0),
-            Product(3, "Lunch", 15.0)
-        )
+    get("/products") {
         call.respond(products)
     }
 
     get("/products/{id}") {
-        val products = listOf(
-            Product(1, "Laptop", 533.0),
-            Product(2, "Headphones", 60.0),
-            Product(3, "Lunch", 15.0)
-        )
-        val id = call.parameters["id"]?.toIntOrNull()
-        if (id == null) {
-            call.respond(HttpStatusCode.BadRequest, "Invalid product > ID: must be a number.")
-            return@get
-        }
+        val productId = call.parameters["id"]?.toIntOrNull()
+            ?: throw BadRequestException("ID must be a number")
 
-        val product = products.find { it.id == id }
-        if ( product == null ) {
-            call.respond(HttpStatusCode.BadRequest, "Product with ID $id not found.")
-            return@get
-        } else {
-            call.respond(product)
-        }
+        val product = products.find { it.id == productId }
+            ?: throw NotFoundException("Product with ID $productId not found")
+
+        call.respond(product)
     }
 
 }

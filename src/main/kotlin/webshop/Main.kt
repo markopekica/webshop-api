@@ -10,6 +10,8 @@ import io.ktor.serialization.kotlinx.json.*
 import webshop.routes.productRoutes
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.plugins.*
+import webshop.models.ErrorResponse
 
 fun main() {
     embeddedServer(Netty, port = 8080) {
@@ -17,12 +19,19 @@ fun main() {
             json()
         }
         install(StatusPages) {
+            // Separates route specific from global 404s
+            // catches any NotFound exception thrown anywhere in the app
+            exception<NotFoundException> { call, cause ->
+                call.respond(HttpStatusCode.NotFound, ErrorResponse(cause.message ?: "Not Found"))
+            }
+            exception<BadRequestException> { call, cause ->
+                call.respond(HttpStatusCode.BadRequest, ErrorResponse(cause.message ?: "Bad Request"))
+            }
             status(HttpStatusCode.NotFound) { call, status ->
-                call.respondText(text = "404: Page Not Found", status = status)
+                call.respondText ("404: Page Not Found", status = status)
             }
             exception<Throwable> { call, cause ->
-                call.respond(HttpStatusCode.InternalServerError, "500: Internal server error")
-                println("Error: ${cause.localizedMessage}")
+                call.respond(HttpStatusCode.InternalServerError, ErrorResponse("Server Error"))
             }
         }
         module()
