@@ -5,6 +5,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Product(
     val id: Int,
-    val name: String,
-    val price: Double
+    var name: String,   // should be refactored back to val
+    var price: Double
 )

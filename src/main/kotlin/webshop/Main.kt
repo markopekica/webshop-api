@@ -19,8 +19,6 @@ fun main() {
             json()
         }
         install(StatusPages) {
-            // Separates route specific from global 404s
-            // catches any NotFound exception thrown anywhere in the app
             exception<NotFoundException> { call, cause ->
                 call.respond(HttpStatusCode.NotFound, ErrorResponse(cause.message ?: "Not Found"))
             }
