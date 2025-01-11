@@ -23,6 +23,7 @@ fun main() {
                 call.respond(HttpStatusCode.NotFound, ErrorResponse(cause.message ?: "Not Found"))
             }
             exception<BadRequestException> { call, cause ->
+                //println("Handling BadRequestException: ${cause.message}")
                 call.respond(HttpStatusCode.BadRequest, ErrorResponse(cause.message ?: "Bad Request"))
             }
             status(HttpStatusCode.NotFound) { call, status ->

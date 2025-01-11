@@ -53,20 +53,26 @@ fun Route.productRoutes() {
     put("/products/{id}") {
         // review and refactor
         val productId = call.parameters["id"]?.toIntOrNull()
-            ?: throw BadRequestException("Invalid product ID")
+            //?: throw BadRequestException("Invalid product ID")
+        if (productId == null){
+            call.respond(HttpStatusCode.BadRequest, "Invalid product ID")
+            throw BadRequestException("Invalid product ID")
+            //return@put
+        }
 
         val updateRequest = call.receive<UpdateProductRequest>()
         val errors = updateRequest.validate()
         if (errors.isNotEmpty()) {
-            call.respond(HttpStatusCode.BadRequest, ErrorResponse(errors.joinToString { ", " }))
+            call.respond(HttpStatusCode.BadRequest, ErrorResponse(errors.joinToString(", ")))
             return@put
         }
 
         val product = products.find { it.id == productId }
-        //?: throw NotFoundException("Product with ID $productId not found")
+            //?: throw NotFoundException("Product with ID $productId not found")
         if (product == null) {
             call.respond(HttpStatusCode.NotFound, ErrorResponse("Product with ID $productId not found"))
-            return@put
+            throw NotFoundException("Product with ID $productId not found")
+            //return@put
         }
 
         updateRequest.name?.let { product.name = it }
@@ -91,7 +97,7 @@ fun CreateProductRequest.validate(): List<String> {
 fun UpdateProductRequest.validate(): List<String> {
     val errors = mutableListOf<String>()
     if (this.name != null && this.name.isBlank()) {
-        errors.add("Product name cannot be empty")
+        errors.add("Product name can not be empty")
     }
     if (this.price != null && this.price <= 0) {
         errors.add("Price must be greater than 0")
