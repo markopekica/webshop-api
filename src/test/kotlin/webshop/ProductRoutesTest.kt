@@ -175,4 +175,48 @@ class ProductRoutesTest {
         assertContains(response.bodyAsText(), "Price must be greater than 0")
     }
 
+    @Test
+    fun testDeleteProduct() = testApplication {
+        application {
+            module()
+        }
+        val client = createClient {
+            this@testApplication.install(ContentNegotiation) {
+                json()
+            }
+        }
+        val response = client.delete("/products/1")
+        assertEquals(HttpStatusCode.NoContent, response.status)
+    }
+
+    @Test
+    fun testDeleteNonExistentProduct() = testApplication {
+        application {
+            module()
+        }
+        val client = createClient {
+            this@testApplication.install(ContentNegotiation) {
+                json()
+            }
+        }
+        val response = client.delete("/products/-1")
+        assertEquals(HttpStatusCode.NotFound, response.status)
+        assertContains(response.bodyAsText(), "Product with ID -1 not found")
+    }
+
+    @Test
+    fun testDeleteInvalidProductId() = testApplication {
+        application {
+            module()
+        }
+        val client = createClient {
+            this@testApplication.install(ContentNegotiation) {
+                json()
+            }
+        }
+        val response = client.delete("/products/abc")
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+        assertContains(response.bodyAsText(), "Invalid product ID")
+    }
+
 }

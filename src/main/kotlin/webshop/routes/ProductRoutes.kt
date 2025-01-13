@@ -77,8 +77,30 @@ fun Route.productRoutes() {
 
         updateRequest.name?.let { product.name = it }
         updateRequest.price?.let { product.price = it }
-
         call.respond(HttpStatusCode.OK, product)
+    }
+
+    delete("/products/{id}") {
+        val productId = call.parameters["id"]?.toIntOrNull()
+        //?: throw BadRequestException("Invalid product ID")
+        if (productId == null) {
+            call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid product ID"))
+            throw BadRequestException("Invalid product ID")
+            //return@delete
+        }
+
+        val product = products.find { it.id == productId }
+            // ?: throw NotFoundException("Product with ID $productId not found")
+
+        if (product == null) {
+            call.respond(HttpStatusCode.NotFound, ErrorResponse("Product with ID $productId not found"))
+            throw NotFoundException("Product with ID $productId not found")
+            //return@delete
+        }
+
+        products.remove(product)
+        // respond with 204 No Content
+        call.respond(HttpStatusCode.NoContent)
     }
 
 }
