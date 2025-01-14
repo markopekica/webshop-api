@@ -23,14 +23,13 @@ fun main() {
                 call.respond(HttpStatusCode.NotFound, ErrorResponse(cause.message ?: "Not Found"))
             }
             exception<BadRequestException> { call, cause ->
-                //println("Handling BadRequestException: ${cause.message}")
                 call.respond(HttpStatusCode.BadRequest, ErrorResponse(cause.message ?: "Bad Request"))
             }
             status(HttpStatusCode.NotFound) { call, status ->
-                call.respondText ("404: Page Not Found", status = status)
+                call.respondText("404: Page Not Found", status = status)
             }
             exception<Throwable> { call, cause ->
-                call.respond(HttpStatusCode.InternalServerError, ErrorResponse("Server Error"))
+                call.respond(HttpStatusCode.InternalServerError, ErrorResponse(cause.message ?: "Server Error"))
             }
         }
         module()
