@@ -36,6 +36,10 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")// <--- This is crucial
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    // Databse
+    implementation("com.datastax.oss:java-driver-core:4.15.0")
+    implementation("com.datastax.oss:java-driver-query-builder:4.15.0")
 }
 
 tasks.test {

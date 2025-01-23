@@ -11,9 +11,17 @@ import webshop.routes.productRoutes
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.plugins.*
+import webshop.database.CassandraConnector
+import webshop.database.ProductRepository
 import webshop.models.ErrorResponse
 
+lateinit var productRepository: ProductRepository
+
 fun main() {
+    val connector = CassandraConnector("127.0.0.1", 9042)
+    connector.connect("product_db")
+    productRepository = ProductRepository(connector.session)
+
     embeddedServer(Netty, port = 8080) {
         install(ContentNegotiation) {
             json()
