@@ -5,11 +5,13 @@ import kotlin.test.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import io.ktor.server.plugins.contentnegotiation.*
+import io.mockk.mockk
+import webshop.database.ProductRepository
 
 
 class ApplicationTest {
+
+    private val mockRepository = mockk<ProductRepository>(relaxed = true)
 
     @Test
     fun sampleTest() {
@@ -19,7 +21,7 @@ class ApplicationTest {
     @Test
     fun testRoot() = testApplication {
         application {
-            module()
+            module(mockRepository)
         }
         val response = client.get("/")
         assertEquals(HttpStatusCode.OK, response.status)

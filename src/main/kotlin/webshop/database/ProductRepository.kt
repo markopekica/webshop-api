@@ -4,6 +4,7 @@ import com.datastax.oss.driver.api.core.CqlSession
 import com.datastax.oss.driver.api.core.uuid.Uuids
 import kotlinx.serialization.Serializable
 import webshop.models.UUIDSerializer
+import webshop.models.UpdateProductRequest
 import java.util.*
 
 @Serializable
@@ -13,7 +14,7 @@ data class ProductEntity(
     val price: Double
 )
 
-class ProductRepository(private val session: CqlSession) {
+class ProductRepository(val session: CqlSession) {
 
     fun addProduct(name: String, price: Double): ProductEntity {
         val id = Uuids.timeBased()
@@ -40,8 +41,6 @@ class ProductRepository(private val session: CqlSession) {
         val statement = session.prepare(query).bind(id)
         val result = session.execute(statement)
         return result.wasApplied()
-        //session.execute(session.prepare(query).bind(id))
-        //return true
     }
 
     fun getAllProducts(): List<ProductEntity> {
@@ -58,27 +57,16 @@ class ProductRepository(private val session: CqlSession) {
         }
     }
 
-    fun updateProduct(id: UUID, name: String?, price: Double?): Boolean {
-        val updateParts = mutableListOf<String>()
-        val parameters = mutableListOf<Any>()
+    fun updateProduct(id: UUID, request: UpdateProductRequest): ProductEntity? {
+        val existingProduct = getProductById(id) ?: return null
 
-        if (name != null) {
-            updateParts.add("name = ?")
-            parameters.add(name)
-        }
-        if (price != null) {
-            updateParts.add("price = ?")
-            parameters.add(price)
-        }
+        val updatedName = request.name ?: existingProduct.name
+        val updatedPrice = request.price ?: existingProduct.price
 
-        if (updateParts.isEmpty()) return false
+        val query = "UPDATE product SET name = ?, price = ? WHERE id = ?"
+        session.execute(session.prepare(query).bind(updatedName, updatedPrice, id))
 
-        val query = "UPDATE product SET ${updateParts.joinToString(", ")} WHERE id = ?"
-        parameters.add(id)
-
-        val statement = session.prepare(query).bind(*parameters.toTypedArray())
-        val result = session.execute(statement)
-        return result.wasApplied()
+        return ProductEntity(id = id, name = updatedName, price = updatedPrice)
     }
 
 }

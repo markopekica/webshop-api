@@ -6,12 +6,14 @@ import java.net.InetSocketAddress
 class CassandraConnector(private val host: String, private val port: Int) {
     lateinit var session: CqlSession
 
-    fun connect(keyspace: String? = null) {
+    fun connect(keyspace: String) {
+        println("Connecting to Cassandra at $host:$port")
         session = CqlSession.builder()
             .addContactPoint(InetSocketAddress(host, port))
             .withLocalDatacenter("datacenter1")
-            .apply { if (keyspace != null) withKeyspace(keyspace) }
+            .withKeyspace(keyspace)
             .build()
+        println("Connected to Cassandra!")
     }
 
     fun close() {

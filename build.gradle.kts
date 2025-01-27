@@ -34,12 +34,21 @@ dependencies {
     // Unit Tests
     testImplementation("io.ktor:ktor-server-tests-jvm:2.3.1")
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")// <--- This is crucial
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // Databse
     implementation("com.datastax.oss:java-driver-core:4.15.0")
     implementation("com.datastax.oss:java-driver-query-builder:4.15.0")
+
+    // Mockk
+    testImplementation("io.mockk:mockk:1.13.5")
+    //testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.0")
+    testImplementation("io.ktor:ktor-server-tests:2.3.1")
+
+    // test containers
+    testImplementation("org.testcontainers:testcontainers:1.19.0")
+    testImplementation("org.testcontainers:cassandra:1.19.0")
 }
 
 tasks.test {
