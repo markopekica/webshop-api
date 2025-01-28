@@ -16,6 +16,70 @@ import kotlin.test.*
 class ProductRoutesTest {
 
     @Test
+    fun `test GET all products`() = testApplication {
+        val mockRepository = mockk<ProductRepository>(relaxed = true)
+
+        every { mockRepository.getAllProducts() } returns listOf(
+            ProductEntity(UUID.randomUUID(), "Product A", 99.99),
+            ProductEntity(UUID.randomUUID(), "Product B", 199.99)
+        )
+
+        application {
+            module(mockRepository)
+        }
+
+        val response = client.get("/products")
+
+        assertEquals(HttpStatusCode.OK, response.status)
+
+        val responseBody = response.bodyAsText()
+        assertContains(responseBody, "Product A")
+        assertContains(responseBody, "Product B")
+    }
+
+    @Test
+    fun `test GET product by ID`() = testApplication {
+        val mockRepository = mockk<ProductRepository>(relaxed = true)
+
+        val sampleProductId = UUID.randomUUID()
+        val sampleProduct = ProductEntity(sampleProductId, "Sample Product", 50.0)
+
+        every { mockRepository.getProductById(sampleProductId) } returns sampleProduct
+
+        application {
+            module(mockRepository)
+        }
+
+        val response = client.get("/products/$sampleProductId")
+
+        assertEquals(HttpStatusCode.OK, response.status)
+
+        val responseBody = response.bodyAsText()
+        assertContains(responseBody, "Sample Product")
+        assertContains(responseBody, "50.0")
+    }
+
+    @Test
+    fun `test GET product by invalid ID`() = testApplication {
+        val mockRepository = mockk<ProductRepository>(relaxed = true)
+
+        every { mockRepository.getProductById(any()) } returns null
+
+        application {
+            module(mockRepository)
+        }
+
+        val nonExistentId = UUID.randomUUID()
+
+        val response = client.get("/products/$nonExistentId")
+
+        assertEquals(HttpStatusCode.NotFound, response.status)
+
+        val responseBody = response.bodyAsText()
+        assertContains(responseBody, "404: Page Not Found")
+    }
+
+    @Test
     fun `test POST products with valid data`() = testApplication {
         val mockRepository = mockk<ProductRepository>(relaxed = true)
 
