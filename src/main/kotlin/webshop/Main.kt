@@ -36,9 +36,6 @@ fun Application.module(repository: ProductRepository) {
         exception<BadRequestException> { call, cause ->
             call.respond(HttpStatusCode.BadRequest, ErrorResponse(cause.message ?: "Bad Request"))
         }
-        status(HttpStatusCode.NotFound) { call, status ->
-            call.respondText("404: Page Not Found", status = status)
-        }
         exception<Throwable> { call, cause ->
             call.respond(HttpStatusCode.InternalServerError, ErrorResponse(cause.message ?: "Server Error"))
         }
@@ -48,5 +45,11 @@ fun Application.module(repository: ProductRepository) {
             call.respondText { "Welcome to the webshop API!" }
         }
         productRoutes(repository)
+        // Catch-all route for unmatched paths
+        route("{...}") {
+            handle {
+                call.respond(HttpStatusCode.NotFound, ErrorResponse("404: Page Not Found"))
+            }
+        }
     }
 }

@@ -50,19 +50,22 @@ fun Route.productRoutes(repository: ProductRepository) {
             ?: return@put call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid product ID format"))
 
         val request = call.receive<UpdateProductRequest>()
-        val errors = ValidationUtils.validateUpdateRequest(request)
 
+        val errors = ValidationUtils.validateUpdateRequest(request)
         if (errors.isNotEmpty()) {
             call.respond(HttpStatusCode.BadRequest, ErrorResponse(errors.joinToString(", ")))
             return@put
         }
 
-        val updatedProduct = repository.updateProduct(productId, request)
-        if (updatedProduct != null) {
-            call.respond(HttpStatusCode.OK, updatedProduct)
-        } else {
+        val existingProduct = repository.getProductById(productId)
+        if (existingProduct == null) {
             call.respond(HttpStatusCode.NotFound, ErrorResponse("Product with ID $productId not found"))
+            return@put
         }
+
+        val updatedProduct = repository.updateProduct(productId, request)
+        call.respond(HttpStatusCode.OK, ErrorResponse(updatedProduct.toString()))
+
     }
 
     delete("/products/{id}") {
@@ -96,7 +99,7 @@ fun validatePrice(price: Double?, allowNull: Boolean = false): String? {
     if (price != null && price <= 0) return "Price must be greater than 0"
     return null
 }
-
+/*
 fun CreateProductRequest.validate(): List<String> {
     return listOfNotNull(
         validateName(this.name),
@@ -110,3 +113,5 @@ fun UpdateProductRequest.validate(): List<String> {
         validatePrice(this.price, allowNull = true)
     )
 }
+
+ */
