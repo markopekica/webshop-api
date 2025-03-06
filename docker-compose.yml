@@ -1,0 +1,39 @@
+services:
+  cassandra_new:
+    image: cassandra:4.0
+    container_name: cassandra_new
+    ports:
+      - "9042:9042"
+    environment:
+      - CASSANDRA_CLUSTER_NAME=MyCluster
+      - CASSANDRA_START_RPC=true
+    volumes:
+      - cassandra_data:/var/lib/cassandra
+    networks:
+      - app-network
+    healthcheck:
+      test: [ "CMD", "cqlsh", "-e", "DESCRIBE KEYSPACES" ]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+
+  webshop-api:
+    build: .
+    container_name: webshop-api
+    ports:
+      - "8080:8080"
+    depends_on:
+      - cassandra_new
+    environment:
+      - CASSANDRA_DATACENTER=datacenter1
+      - CASSANDRA_HOST=cassandra_new
+      - CASSANDRA_PORT=9042
+      - KEYSPACE=products_ks
+    networks:
+      - app-network
+volumes:
+  cassandra_data:
+
+networks:
+  app-network:
+    driver: bridge

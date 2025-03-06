@@ -1,8 +1,26 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+
 plugins {
     kotlin("jvm") version "2.0.21"
     kotlin("plugin.serialization") version "2.0.21"
+    //id("io.ktor.plugin") version "2.3.1"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
     application
 }
+
+tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
+    // Remove the classifier (optional)
+    archiveClassifier.set("")
+    archiveFileName.set("webshop-api-all.jar")
+    destinationDirectory.set(layout.buildDirectory.dir("libs"))
+    project.setProperty("mainClassName", "webshop.MainKt")
+    // Configure the manifest
+    manifest {
+        attributes["Main-Class"] = "webshop.MainKt"
+    }
+}
+
 
 group = "org.example"
 version = "1.0-SNAPSHOT"
@@ -49,6 +67,15 @@ dependencies {
     // test containers
     testImplementation("org.testcontainers:testcontainers:1.19.0")
     testImplementation("org.testcontainers:cassandra:1.19.0")
+
+    /*
+    implementation("com.datastax.oss:java-driver-core:4.x.x") {
+        // Exclude Tinkerpop-related modules
+        exclude(group = "org.apache.tinkerpop", module = "gremlin-tinkergraph-structure")
+        exclude(group = "org.apache.tinkerpop", module = "gremlin-core")
+    }
+
+     */
 }
 
 tasks.test {
@@ -65,3 +92,13 @@ sourceSets {
 kotlin {
     jvmToolchain(17)
 }
+
+tasks.withType<Jar> {
+    manifest {
+        // Specify the fully qualified name of the main class.
+        // For Kotlin, if your main function is in Main.kt and in package "webshop",
+        // the main class is typically "webshop.MainKt"
+        attributes["Main-Class"] = "webshop.MainKt"
+    }
+}
+

@@ -16,13 +16,29 @@ import webshop.database.ProductRepository
 import webshop.models.ErrorResponse
 
 fun main() {
-    val connector = CassandraConnector("127.0.0.1", 9042)
-    connector.connect("products_ks")
+
+    val cassandraHost = System.getenv("CASSANDRA_HOST") ?: "127.0.0.1"
+    val cassandraPort = System.getenv("CASSANDRA_PORT")?.toInt() ?: 9042
+    val keyspace = System.getenv("KEYSPACE") ?: "products_ks"
+    val datacenter = System.getenv("CASSANDRA_DATACENTER") ?: "datacenter1"
+
+    val connector = CassandraConnector(cassandraHost, cassandraPort, datacenter)
+
+    // Initialize keyspace and table if needed:
+    //connector.initializeKeyspace(keyspace)
+    //connector.initializeTable(keyspace)
+
+    connector.connect(keyspace)
     val productRepository = ProductRepository(connector.session)
 
     embeddedServer(Netty, port = 8080) {
         module(productRepository)
     }.start(wait = true)
+
+    // Optionally add a shutdown hook to close the session:
+    Runtime.getRuntime().addShutdownHook(Thread {
+        connector.close()
+    })
 }
 
 fun Application.module(repository: ProductRepository) {
