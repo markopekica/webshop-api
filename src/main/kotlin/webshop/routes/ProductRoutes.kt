@@ -50,7 +50,21 @@ fun Route.productRoutes(repository: ProductRepository) {
             ?: return@put call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid product ID format"))
 
         val request = call.receive<UpdateProductRequest>()
+        val errors = ValidationUtils.validateUpdateRequest(request)
+        if (errors.isNotEmpty()) {
+            return@put call.respond(HttpStatusCode.BadRequest, ErrorResponse(errors.joinToString { ", " }))
+        }
 
+        val existingProduct = repository.getProductById(productId)
+            ?: return@put call.respond(HttpStatusCode.NotFound, ErrorResponse("Product with ID $productId not found"))
+
+        val updatedProduct = repository.updateProduct(productId, request)
+        call.respond(HttpStatusCode.OK, updatedProduct)
+        /*
+        val productId = call.parameters["id"]?.let { UUID.fromString(it) }
+            ?: return@put call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid product ID format"))
+
+        val request = call.receive<UpdateProductRequest>()
         val errors = ValidationUtils.validateUpdateRequest(request)
         if (errors.isNotEmpty()) {
             call.respond(HttpStatusCode.BadRequest, ErrorResponse(errors.joinToString(", ")))
@@ -65,6 +79,7 @@ fun Route.productRoutes(repository: ProductRepository) {
 
         val updatedProduct = repository.updateProduct(productId, request)
         call.respond(HttpStatusCode.OK, ErrorResponse(updatedProduct.toString()))
+         */
 
     }
 

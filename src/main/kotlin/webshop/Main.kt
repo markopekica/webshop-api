@@ -25,17 +25,46 @@ fun main() {
     val connector = CassandraConnector(cassandraHost, cassandraPort, datacenter)
 
     // Initialize keyspace and table if needed:
-    //connector.initializeKeyspace(keyspace)
-    //connector.initializeTable(keyspace)
+    // disable for prod > INIT_SCHEMA=false
+    /*
+    if (System.getenv("INIT_SCHEMA") == "true") {
+        connector.connect("system")
+        connector.initializeKeyspace(keyspace)
+        connector.connect(keyspace)
+        connector.initializeTable(keyspace)
+    } else {
+        connector.connect(keyspace)
+    }
+    */
 
-    connector.connect(keyspace)
+    fun retryConnect(connector: CassandraConnector, keyspace: String, retries: Int = 5, delayMillis: Long = 3000): Boolean {
+        repeat(retries) { attempt ->
+            try {
+                println("Attempt ${attempt + 1} to connect to Cassandra...")
+                connector.connect(keyspace)
+                return true
+            } catch (e: Exception) {
+                println("Connection failed: ${e.message}")
+                Thread.sleep(delayMillis)
+            }
+        }
+        return false
+    }
+
+    //connector.connect(keyspace)
+    val connected = retryConnect(connector, keyspace)
+    if (!connected) {
+        println("Failed to connect to Cassandra after retries. Exiting.")
+        return
+    }
+
     val productRepository = ProductRepository(connector.session)
 
     embeddedServer(Netty, port = 8080) {
         module(productRepository)
     }.start(wait = true)
 
-    // Optionally add a shutdown hook to close the session:
+    // A shutdown hook to close the session:
     Runtime.getRuntime().addShutdownHook(Thread {
         connector.close()
     })
@@ -47,13 +76,16 @@ fun Application.module(repository: ProductRepository) {
     }
     install(StatusPages) {
         exception<NotFoundException> { call, cause ->
-            call.respond(HttpStatusCode.NotFound, ErrorResponse(cause.message ?: "Not Found"))
+            call.respond(HttpStatusCode.NotFound,
+                ErrorResponse(cause.message ?: "Not Found"))
         }
         exception<BadRequestException> { call, cause ->
-            call.respond(HttpStatusCode.BadRequest, ErrorResponse(cause.message ?: "Bad Request"))
+            call.respond(HttpStatusCode.BadRequest,
+                ErrorResponse(cause.message ?: "Bad Request"))
         }
         exception<Throwable> { call, cause ->
-            call.respond(HttpStatusCode.InternalServerError, ErrorResponse(cause.message ?: "Server Error"))
+            call.respond(HttpStatusCode.InternalServerError,
+                ErrorResponse(cause.message ?: "Server Error"))
         }
     }
     routing {
@@ -64,7 +96,8 @@ fun Application.module(repository: ProductRepository) {
         // Catch-all route for unmatched paths
         route("{...}") {
             handle {
-                call.respond(HttpStatusCode.NotFound, ErrorResponse("404: Page Not Found"))
+                call.respond(HttpStatusCode.NotFound,
+                    ErrorResponse("404: Page Not Found"))
             }
         }
     }

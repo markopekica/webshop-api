@@ -7,13 +7,16 @@ import webshop.models.UUIDSerializer
 import webshop.models.UpdateProductRequest
 import java.util.*
 
+import webshop.models.ProductEntity
+
+/*
 @Serializable
 data class ProductEntity(
     @Serializable(with = UUIDSerializer::class) val id: UUID,
     val name: String,
     val price: Double
 )
-
+*/
 class ProductRepository(val session: CqlSession) {
 
     fun addProduct(name: String, price: Double): ProductEntity {
@@ -57,7 +60,11 @@ class ProductRepository(val session: CqlSession) {
         }
     }
 
-    fun updateProduct(id: UUID, request: UpdateProductRequest): ProductEntity? {
+    fun updateProduct(id: UUID, request: UpdateProductRequest): ProductEntity {
+        val query = "UPDATE product SET name = ?, price = ? WHERE id = ?"
+        session.execute(session.prepare(query).bind(request.name, request.price, id))
+        return ProductEntity(id, request.name, request.price)
+        /*
         val existingProduct = getProductById(id) ?: return null
 
         val updatedName = request.name ?: existingProduct.name
@@ -67,6 +74,7 @@ class ProductRepository(val session: CqlSession) {
         session.execute(session.prepare(query).bind(updatedName, updatedPrice, id))
 
         return ProductEntity(id = id, name = updatedName, price = updatedPrice)
+         */
     }
 
 }

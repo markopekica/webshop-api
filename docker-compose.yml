@@ -7,6 +7,10 @@ services:
     environment:
       - CASSANDRA_CLUSTER_NAME=MyCluster
       - CASSANDRA_START_RPC=true
+      - CASSANDRA_DATACENTER=datacenter1
+      - CASSANDRA_PORT=9042
+      - KEYSPACE=products_ks
+      - INIT_SCHEMA=true
     volumes:
       - cassandra_data:/var/lib/cassandra
     networks:

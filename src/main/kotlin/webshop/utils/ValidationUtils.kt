@@ -13,8 +13,8 @@ object ValidationUtils {
 
     fun validateUpdateRequest(request: UpdateProductRequest): List<String> {
         val errors = mutableListOf<String>()
-        if (request.name != null && request.name.isBlank()) errors.add("Name cannot be blank")
-        if (request.price != null && request.price <= 0) errors.add("Price must be greater than 0")
+        if (request.name.isBlank()) errors.add("Name cannot be blank")
+        if (request.price <= 0) errors.add("Price must be greater than 0")
         return errors
     }
 }

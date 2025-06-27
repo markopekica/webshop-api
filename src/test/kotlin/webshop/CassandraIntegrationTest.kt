@@ -32,7 +32,8 @@ class CassandraIntegrationTest {
 
         val connector = CassandraConnector(
             cassandra.host,
-            cassandra.firstMappedPort
+            cassandra.firstMappedPort,
+            "datacenter1"
         )
         connector.connect("system")
 

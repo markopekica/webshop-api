@@ -1,0 +1,30 @@
+# Gradle files
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IntelliJ IDEA files
+.idea/
+*.iml
+/out
+
+# Docker
+*.log
+docker-compose.override.yml
+
+# Test & temp files
+test-results/
+test-output/
+*.pid
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Kotlin / Java artifacts
+*.class
+*.jar
+
+# Misc editor files
+*.swp
+*.swo

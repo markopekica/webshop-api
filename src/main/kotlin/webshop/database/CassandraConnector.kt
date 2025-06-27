@@ -3,6 +3,7 @@ package webshop.database
 import com.datastax.oss.driver.api.core.CqlSession
 import com.datastax.oss.driver.api.core.config.DefaultDriverOption
 import com.datastax.oss.driver.api.core.config.DriverConfigLoader
+import com.datastax.oss.driver.api.querybuilder.schema.AlterKeyspace
 import java.net.InetSocketAddress
 import java.time.Duration
 
@@ -24,64 +25,37 @@ class CassandraConnector(
     }
 
     /*
+    // working
+
     fun initializeKeyspace(keyspace: String) {
         session = CqlSession.builder()
             .addContactPoint(InetSocketAddress(host, port))
             .withLocalDatacenter(datacenter)
-            .withKeyspace("system")
             .build()
 
-        try {
-            println("Creating keyspace '$keyspace' if not exists...")
-            session.execute(
-                """
-                    CREATE KEYSPACE IF NOT EXISTS $keyspace
-                    WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}
-                """.trimIndent()
-            )
-            println("Keyspace '$keyspace' ensured.")
-        } catch (e: Exception) {
-            println("Error creating keyspace: ${e.message}")
-            e.printStackTrace()
-        } finally {
-            session.close()
-        }
-
+        session.execute(
+            """
+                CREATE KEYSPACE IF NOT EXISTS $keyspace
+                WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}
+            """.trimIndent()
+        )
     }
 
     fun initializeTable(keyspace: String) {
-        session = CqlSession.builder()
-            .addContactPoint(InetSocketAddress(host, port))
-            .withLocalDatacenter(datacenter)
-            .withKeyspace(keyspace)
-            .withConfigLoader(
-                DriverConfigLoader.programmaticBuilder()
-                    .withDuration(DefaultDriverOption.REQUEST_TIMEOUT, Duration.ofSeconds(5))
-                    .build()
-            )
-            .build()
+        println("Creating table if it doesn't exist...")
 
-        try {
-            println("Creating table 'product' in keyspace '$keyspace' if not exists...")
-            session.execute(
-                """
-                    CREATE TABLE IF NOT EXISTS product (
-                        id UUID PRIMARY KEY,
-                        name text,
-                        price double
-                    );
-                """.trimIndent()
-            )
-            println("Table 'product' initialized in keyspace '$keyspace'.")
-        } catch (e: Exception) {
-            println("Error creating table: ${e.message}")
-            e.printStackTrace()
-        } finally {
-            session.close()
-        }
+        session.execute(
+            """
+                CREATE TABLE IF NOT EXISTS $keyspace.product (
+                    id UUID PRIMARY KEY,
+                    name text,
+                    price double
+                )
+            """.trimIndent()
+        )
     }
+*/
 
-     */
 
     override fun close() {
         if (::session.isInitialized && !session.isClosed) {
