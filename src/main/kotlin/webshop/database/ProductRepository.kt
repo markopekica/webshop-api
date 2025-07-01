@@ -1,6 +1,7 @@
 package webshop.database
 
 import com.datastax.oss.driver.api.core.CqlSession
+import com.datastax.oss.driver.api.core.cql.SimpleStatement
 import com.datastax.oss.driver.api.core.uuid.Uuids
 import kotlinx.serialization.Serializable
 import webshop.models.UUIDSerializer
@@ -8,6 +9,7 @@ import webshop.models.UpdateProductRequest
 import java.util.*
 
 import webshop.models.ProductEntity
+import java.nio.ByteBuffer
 
 /*
 @Serializable
@@ -37,6 +39,41 @@ class ProductRepository(val session: CqlSession) {
                 it.getDouble("price") ?: throw IllegalArgumentException("Price can not be null")
             )
         }
+    }
+
+    fun getProductsPaged(limit: Int, pagingState: ByteArray?): Pair<List<ProductEntity>, ByteArray?> {
+        val statementBuilder = SimpleStatement.builder("SELECT * FROM product")
+            .setPageSize(limit)
+
+        if (pagingState != null) {
+            statementBuilder.setPagingState(ByteBuffer.wrap(pagingState))
+        }
+
+        val resultSet = session.execute(statementBuilder.build())
+
+        /*
+        val products = resultSet.mapNotNull { row ->
+            val id = row.getUuid("id") ?: return@mapNotNull null
+            val name = row.getString("name") ?: return@mapNotNull null
+            val price = row.getDouble("price")
+            ProductEntity(id, name, price)
+        }.toList()
+         */
+
+        val iterator = resultSet.iterator()
+        val products = mutableListOf<ProductEntity>()
+        while (iterator.hasNext() && products.size < limit) {
+            val row = iterator.next()
+            val id = row.getUuid("id") ?: continue
+            val name = row.getString("name") ?: continue
+            val price = row.getDouble("price")
+            products.add(ProductEntity(id, name, price))
+        }
+
+
+        val nextState = resultSet.executionInfo.pagingState?.array()
+
+        return Pair(products, nextState)
     }
 
     fun deleteProductById(id: UUID): Boolean {

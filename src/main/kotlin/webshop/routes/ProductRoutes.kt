@@ -12,9 +12,26 @@ import java.util.*
 
 
 fun Route.productRoutes(repository: ProductRepository) {
-    get("/products") {
+    /*get("/products") {
         val products = repository.getAllProducts()
         call.respond(products)
+    }
+
+     */
+
+    get("/products") {
+        val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 20
+        val pagingStateParam = call.request.queryParameters["pagingState"]
+        val pagingStateBytes = pagingStateParam?.let { Base64.getDecoder().decode(it) }
+
+        val (products, nextPagingState) = repository.getProductsPaged(limit, pagingStateBytes)
+
+        call.respond(
+            PagedProductsResponse(
+                products = products,
+                nextPagingState = nextPagingState?.let { Base64.getEncoder().encodeToString(it) }
+            )
+        )
     }
 
     get("/products/{id}") {
