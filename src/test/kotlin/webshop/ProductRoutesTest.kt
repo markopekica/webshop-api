@@ -1,7 +1,6 @@
 package webshop
 
 import io.ktor.server.testing.*
-import webshop.database.ProductEntity
 import webshop.database.ProductRepository
 import java.util.UUID
 import io.ktor.client.request.*
@@ -10,6 +9,7 @@ import io.ktor.http.*
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.serialization.json.Json
+import webshop.models.ProductEntity
 import webshop.models.CreateProductRequest
 import webshop.models.UpdateProductRequest
 import kotlin.test.*

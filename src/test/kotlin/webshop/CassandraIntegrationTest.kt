@@ -6,12 +6,13 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.AfterEach
 import org.testcontainers.containers.CassandraContainer
 import webshop.database.CassandraConnector
-import webshop.database.ProductEntity
 import webshop.database.ProductRepository
+import webshop.models.ProductEntity
 import java.util.*
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+
 
 class CassandraIntegrationTest {
 

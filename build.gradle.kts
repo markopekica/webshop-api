@@ -76,6 +76,9 @@ dependencies {
     }
 
      */
+
+    // Logging
+    implementation("io.ktor:ktor-server-call-logging:${ktor_version}")
 }
 
 tasks.test {

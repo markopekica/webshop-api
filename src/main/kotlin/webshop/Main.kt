@@ -11,9 +11,11 @@ import webshop.routes.productRoutes
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.plugins.*
+import io.ktor.server.plugins.callloging.CallLogging
 import webshop.database.CassandraConnector
 import webshop.database.ProductRepository
 import webshop.models.ErrorResponse
+
 
 fun main() {
 
@@ -23,19 +25,6 @@ fun main() {
     val datacenter = System.getenv("CASSANDRA_DATACENTER") ?: "datacenter1"
 
     val connector = CassandraConnector(cassandraHost, cassandraPort, datacenter)
-
-    // Initialize keyspace and table if needed:
-    // disable for prod > INIT_SCHEMA=false
-    /*
-    if (System.getenv("INIT_SCHEMA") == "true") {
-        connector.connect("system")
-        connector.initializeKeyspace(keyspace)
-        connector.connect(keyspace)
-        connector.initializeTable(keyspace)
-    } else {
-        connector.connect(keyspace)
-    }
-    */
 
     fun retryConnect(connector: CassandraConnector, keyspace: String, retries: Int = 5, delayMillis: Long = 3000): Boolean {
         repeat(retries) { attempt ->
@@ -87,6 +76,9 @@ fun Application.module(repository: ProductRepository) {
             call.respond(HttpStatusCode.InternalServerError,
                 ErrorResponse(cause.message ?: "Server Error"))
         }
+    }
+    install(CallLogging){
+        level = org.slf4j.event.Level.INFO
     }
     routing {
         get("/") {
