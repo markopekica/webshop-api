@@ -26,6 +26,8 @@ fun Route.productRoutes(repository: ProductRepository) {
 
         val (products, nextPagingState) = repository.getProductsPaged(limit, pagingStateBytes)
 
+        println("[GET] /products -> Returned ${products.size} product(s), limit=$limit, pagingState=${pagingStateParam ?: "none"}")
+
         call.respond(
             PagedProductsResponse(
                 products = products,
@@ -37,14 +39,17 @@ fun Route.productRoutes(repository: ProductRepository) {
     get("/products/{id}") {
         val id = call.parameters["id"]?.let(UUID::fromString)
         if (id == null) {
+            println("[GET] /products/$id -> Invalid UUID format")
             call.respond(HttpStatusCode.BadRequest, "Invalid ID format")
             return@get
         }
 
         val product = repository.getProductById(id)
         if (product == null) {
+            println("[GET] /products/$id -> Product not found")
             call.respond(HttpStatusCode.NotFound, "Product not found")
         } else {
+            println("[GET] /products/$id -> Found product `${product.name}`")
             call.respond(HttpStatusCode.OK, product)
         }
     }
@@ -54,11 +59,13 @@ fun Route.productRoutes(repository: ProductRepository) {
 
         val errors = ValidationUtils.validateCreateRequest(request)
         if (errors.isNotEmpty()) {
+            println("[POST] /products -> Validation failed: ${errors.joinToString {"; "}}")
             call.respond(HttpStatusCode.BadRequest, ErrorResponse(errors.joinToString(", ")))
             return@post
         }
 
         val newProduct = repository.addProduct(request.name, request.price)
+        println("[POST] /products -> Created product `${newProduct.name}` with ID ${newProduct.id}")
         call.respond(HttpStatusCode.Created, newProduct)
     }
 
@@ -69,40 +76,27 @@ fun Route.productRoutes(repository: ProductRepository) {
         val request = call.receive<UpdateProductRequest>()
         val errors = ValidationUtils.validateUpdateRequest(request)
         if (errors.isNotEmpty()) {
+            println("[PUT] /products/$productId -> Validation failed: ${errors.joinToString("; ")}")
             return@put call.respond(HttpStatusCode.BadRequest, ErrorResponse(errors.joinToString { ", " }))
         }
 
-        val existingProduct = repository.getProductById(productId)
-            ?: return@put call.respond(HttpStatusCode.NotFound, ErrorResponse("Product with ID $productId not found"))
+        if (repository.getProductById(productId) == null) {
+            println("[PUT] /product/$productId -> Product not found")
+            return@put call.respond(HttpStatusCode.NotFound, ErrorResponse("Product with ID $productId not found"))
+        }
+
+        //val existingProduct = repository.getProductById(productId)
+        //    ?: return@put call.respond(HttpStatusCode.NotFound, ErrorResponse("Product with ID $productId not found"))
 
         val updatedProduct = repository.updateProduct(productId, request)
+        println("[PUT] /product/$productId -> Product updated")
         call.respond(HttpStatusCode.OK, updatedProduct)
-        /*
-        val productId = call.parameters["id"]?.let { UUID.fromString(it) }
-            ?: return@put call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid product ID format"))
-
-        val request = call.receive<UpdateProductRequest>()
-        val errors = ValidationUtils.validateUpdateRequest(request)
-        if (errors.isNotEmpty()) {
-            call.respond(HttpStatusCode.BadRequest, ErrorResponse(errors.joinToString(", ")))
-            return@put
-        }
-
-        val existingProduct = repository.getProductById(productId)
-        if (existingProduct == null) {
-            call.respond(HttpStatusCode.NotFound, ErrorResponse("Product with ID $productId not found"))
-            return@put
-        }
-
-        val updatedProduct = repository.updateProduct(productId, request)
-        call.respond(HttpStatusCode.OK, ErrorResponse(updatedProduct.toString()))
-         */
-
     }
 
     delete("/products/{id}") {
         val productId = call.parameters["id"]
         if (productId == null) {
+            println("[DELETE] /products -> Missing product ID")
             call.respond(HttpStatusCode.BadRequest, ErrorResponse("Product ID is required"))
             return@delete
         }
@@ -111,11 +105,14 @@ fun Route.productRoutes(repository: ProductRepository) {
             val uuid = UUID.fromString(productId)
             if (repository.deleteProductById(uuid)) {
                 val successMessage = "Product with ID $productId was successfully deleted."
+                println("[DELETE] /products/$productId -> Success")
                 call.respond(HttpStatusCode.OK, ErrorResponse(successMessage))
             } else {
+                println("[DELETE] /products/$productId -> Not found")
                 call.respond(HttpStatusCode.NotFound, ErrorResponse("Product with ID $productId not found"))
             }
         } catch (e: IllegalArgumentException) {
+            println("[DELETE] /products/$productId -> Invalid ID format")
             call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid Product ID format"))
         }
     }
