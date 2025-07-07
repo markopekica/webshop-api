@@ -40,6 +40,8 @@ fun main() {
         return false
     }
 
+    connector.initializeKeyspaceAndTable(keyspace)
+
     //connector.connect(keyspace)
     val connected = retryConnect(connector, keyspace)
     if (!connected) {

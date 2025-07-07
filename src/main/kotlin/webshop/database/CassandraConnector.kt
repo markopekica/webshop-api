@@ -56,6 +56,35 @@ class CassandraConnector(
     }
 */
 
+    fun initializeKeyspaceAndTable(keyspace: String) {
+        println("Connecting to create keyspace...")
+        session = CqlSession.builder()
+            .addContactPoint(InetSocketAddress(host, port))
+            .withLocalDatacenter(datacenter)
+            .build()
+
+        session.execute(
+            """
+        CREATE KEYSPACE IF NOT EXISTS $keyspace
+        WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}
+        """.trimIndent()
+        )
+        println("Keyspace '$keyspace' ensured.")
+
+        session.execute("USE $keyspace")
+
+        session.execute(
+            """
+        CREATE TABLE IF NOT EXISTS product (
+            id UUID PRIMARY KEY,
+            name text,
+            price double
+        )
+        """.trimIndent()
+        )
+        println("Table 'product' ensured.")
+    }
+
 
     override fun close() {
         if (::session.isInitialized && !session.isClosed) {
