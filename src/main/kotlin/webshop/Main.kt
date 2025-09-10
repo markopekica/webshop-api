@@ -11,7 +11,7 @@ import webshop.routes.productRoutes
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.plugins.*
-import io.ktor.server.plugins.callloging.CallLogging
+import io.ktor.server.plugins.calllogging.*
 import webshop.database.CassandraConnector
 import webshop.database.ProductRepository
 import webshop.models.ErrorResponse
